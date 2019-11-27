@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block navigation %}
+<div>
+  <form method="post" action="tag" enctype="multipart/form-data">
+    <div>
+      <textarea id="input-text" rows="5" cols="80" name="text" placeholder="Type here"></textarea>
+    </div>
+    <div>
+      <button type="submit" class="btn btn-primary" id="submit_button">Submit</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+
+{% block head %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/visualization.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='fonts/'+config['FONT_FILE']) }}">
+    <style type="text/css">
+      .nav-row {
+          width: {{ config['LINE_WIDTH'] }}px;
+      }
+      .visualization {
+          width: {{ config['LINE_WIDTH'] }}px;
+      }
+{% if config['ANNOTATION_TYPE_SUBSCRIPT'] %}
+.ann::after {
+    vertical-align: sub;
+    font-size: 60%;
+    line-height: normal;
+    font-variant: small-caps; /* default is `normal` */
+}
+{# TODO generalize #}
+.ann-tChemical::after {
+    content: " Chem";
+}
+.ann-tOrganism::after {
+    content: " Org";
+}
+.ann-tGene::after {
+    content: " Gene";
+}
+.ann-tDisease::after {
+    content: " Dis";
+}
+{% endif %}
+    </style>
+{% endblock %}
+
+{% block navigation %}
+{% endblock %}
+
+
+{% block content %}
+<div class="visualization-wrapper">
+  <div class="legend-wrapper">
+    {% block legend %}{% endblock %}
+  </div>
+  <div class="visualizations">
+    {% block visualizations %}{% endblock %}
+  </div>
+</div>
+{% endblock %}
