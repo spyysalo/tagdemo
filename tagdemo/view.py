@@ -26,7 +26,7 @@ def show_index():
 @bp.route('/tag', methods=['GET', 'POST'])
 def tag_text():
     text = str(request.values['text'])
-    req = requests.post(TAGGER_URL, data={ 'text': text })
+    req = requests.get(TAGGER_URL, data={ 'text': text })
     annotations = conll_to_standoff(text, req.text)
     types = sorted(list(set([a.type for a in annotations])))
     content = standoff_to_html(text, annotations)
