@@ -5,6 +5,7 @@ from flask import request, url_for, render_template, jsonify
 from flask import current_app as app
 
 from .so2html import conll_to_standoff, standoff_to_html, generate_legend
+from .so2html import sort_types
 
 
 TAGGER_URL = 'http://127.0.0.1:8080'
@@ -28,7 +29,7 @@ def tag_text():
     text = str(request.values['text'])
     req = requests.get(TAGGER_URL, data={ 'text': text })
     annotations = conll_to_standoff(text, req.text)
-    types = sorted(list(set([a.type for a in annotations])))
+    types = sort_types(list(set([a.type for a in annotations])))
     content = standoff_to_html(text, annotations)
     legend = generate_legend(types, include_style=True)
     annotated_strings = sorted(list(set([

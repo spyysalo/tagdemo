@@ -11,7 +11,7 @@ import unicodedata
 import urllib.parse
 
 from collections import namedtuple
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from itertools import chain
 from logging import warning
 from functools import cmp_to_key
@@ -342,6 +342,11 @@ def uniq(s):
     return [i for i in s if i not in seen and not seen.add(i)]
 
 
+def sort_types(types):
+    idx = { t: i for i, t in enumerate(ordered_type_color_map, start=1) }
+    return sorted(types, key=lambda t: (idx.get(t, 0), t))
+
+
 def generate_legend(types, colors=None, include_style=False):
     parts = []
     if colors is None:
@@ -359,8 +364,11 @@ def generate_legend(types, colors=None, include_style=False):
     parts.append('''<div class="legend">Legend<table>''')
     for f, c in zip(types, colors):
         t = html_safe_string(f)
-        tagl, tagr = '<%s class="ann ann-t%s">' % (TAG, t), '</%s>' % TAG
-        parts.append('<tr><td>%s%s%s</td></tr>' % (tagl, f, tagr))
+        n = type_name_map.get(f, f).replace(' ', '&nbsp;')
+        m = type_tooltip_map.get(f, n.lower().capitalize())
+        tagl = '<%s class="ann ann-t%s" data-tooltip="%s">' % (TAG, t, m)
+        tagr = '</%s>' % TAG
+        parts.append('<tr><td>%s%s%s</td></tr>' % (tagl, n, tagr))
     parts.append('</table></div>')
     return ''.join(parts)
 
@@ -644,39 +652,74 @@ kelly_colors = [
 
 
 # Pre-set colors
-type_color_map = {
-    'ORG':     '#8fb2ff',
-    'PRO':     '#ff99ff',
-    'LOC':     '#7fe2ff',
-    'PER':     '#90ee90',
-    'DATE':    '#ffff00',
-    'EVENT':   '#a9a9a9',
-    'Organism_subdivision':    '#ddaaaa',
-    'Anatomical_system':       '#ee99cc',
-    'Organ':                   '#ff95ee',
-    'Multi-tissue_structure':  '#e999ff',
-    'Tissue':                  '#cf9fff',
-    'Developing_anatomical_structure': '#ff9fff',
-    'Cell':                    '#cf9fff',
-    'Cellular_component':      '#bbc3ff',
-    'Organism_substance':      '#ffeee0',
-    'Immaterial_anatomical_entity':    '#fff9f9',
-    'Pathological_formation':  '#aaaaaa',
-    'Cancer':  '#999999',
-    'Gene': '#7fa2ff',
-    'Chemical': '#9fdfff',
-    'Species': '#ffccaa',
-    'Organism': '#ffccaa',
-    'Disease': '#ff8888',
-    'ggp': '#7fa2ff',
-    'che': '#8fcfff',
-    'dis': '#ff9999',
-    'org': '#ffddbb',
+ordered_type_color_map = OrderedDict([
+    ('PER', '#90ee90'),
+    ('PERSON', '#a0eea0'),
+    ('NORP', '#a0eeb0'),
+    ('GPE', '#85e8cc'),
+    ('LOC', '#7fe2ff'),
+    ('FAC', '#7fe2ff'),
+    ('ORG', '#9fc2ff'),
+    ('EVENT', '#ffb300'),
+    ('PRO', '#ff99ff'),
+    ('PRODUCT', '#ff9988'),
+    ('WORK_OF_ART', '#ff8899'),
+    ('DATE', '#ffff44'),
+    ('TIME', '#ffff66'),
+    ('MONEY', '#44aa44'),
+    ('PERCENT', '#ddddee'),
+    ('QUANTITY', '#eeddee'),
+    ('Organism_subdivision', '#ddaaaa'),
+    ('Anatomical_system', '#ee99cc'),
+    ('Organ', '#ff95ee'),
+    ('Multi-tissue_structure', '#e999ff'),
+    ('Tissue', '#cf9fff'),
+    ('Developing_anatomical_structure', '#ff9fff'),
+    ('Cell', '#cf9fff'),
+    ('Cellular_component', '#bbc3ff'),
+    ('Organism_substance', '#ffeee0'),
+    ('Immaterial_anatomical_entity', '#fff9f9'),
+    ('Pathological_formation', '#aaaaaa'),
+    ('Cancer', '#999999'),
+    ('Gene', '#7fa2ff'),
+    ('Chemical', '#9fdfff'),
+    ('Species', '#ffccaa'),
+    ('Organism', '#ffccaa'),
+    ('Disease', '#ff8888'),
+    ('ggp', '#7fa2ff'),
+    ('che', '#8fcfff'),
+    ('dis', '#ff9999'),
+    ('org', '#ffddbb'),
+])
+
+type_name_map = {
+    'WORK_OF_ART': 'WORK OF ART',
 }
 
+# Based on OntoNotes guidelines
+type_tooltip_map = {
+    'PERSON': 'Proper names of people',
+    'NORP': 'Nationalities, religious and political affiliations',
+    'FAC': 'Facilities: man-made structures',
+    'ORG': 'Organizations: companies, government agencies, educational institutions, sport teams, etc.',
+    'GPE': 'Geopolitical entities: countries, cities, states, provinces, municipalities, etc.',
+    'LOC': 'Geographical locations other than geopolitial entities',
+    'PRODUCT': 'Products including devices, vehicles, software and services',
+    'DATE': 'Dates and periods of a day or longer',
+    'TIME': 'Times of day and durations shorter than a day',
+    'PERCENT': 'Percentages',
+    'MONEY': 'Monetary values',
+    'QUANTITY': 'Measurements with standardized units',
+    'ORDINAL': 'Ordinal numbers (first, second, etc.)',
+    'CARDINAL': 'Cardinal numbers (one, two, etc.)',
+    'EVENT': 'Named hurricanes, battles, wars, sports events, attacks, etc.',
+    'WORK_OF_ART': 'Books, songs, television programs, etc., including awards',
+    'LAW': 'Laws, treaties, and other named legal documents',
+    'LANGUAGE': 'Named languages',
+}
 
 def span_colors(types):
-    missing = [t for t in types if t not in type_color_map]
+    missing = [t for t in types if t not in ordered_type_color_map]
     if len(missing) <= len(kelly_colors):
         fill = kelly_colors[:len(missing)]
     else:
@@ -684,8 +727,8 @@ def span_colors(types):
     colors = []
     i = 0
     for t in types:
-        if t in type_color_map:
-            colors.append(type_color_map[t])
+        if t in ordered_type_color_map:
+            colors.append(ordered_type_color_map[t])
         else:
             colors.append(fill[i])
             i += 1
