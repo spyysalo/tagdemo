@@ -116,6 +116,18 @@ class Span(object):
                 self._height = max([n.height() for n in self.nested]) + ownh
         return self._height
 
+    def to_standoff(self, text, idx=0):
+        t = text[self.start:self.end].replace('\n', '\\n').replace('\r', '\\r')
+        return 'T{}\t{} {} {}\t{}'.format(
+            idx, self.type, self.start, self.end, t)
+
+    def to_dict(self, text):
+        return {
+            'start': self.start,
+            'end': self.end,
+            'type': self.type,
+            'text': text[self.start:self.end],
+        }
 
 # Span type to HTML tag mapping for formatting spans. Note that these
 # are URIs we came up with and not likely to be adopted by many tools
@@ -144,7 +156,7 @@ def type_to_formatting_tag(type_):
 
 
 class Marker(object):
-    def __init__(self, span, offset, is_end, cont_left=False, 
+    def __init__(self, span, offset, is_end, cont_left=False,
                  cont_right=False):
         self.span = span
         self.offset = offset
@@ -209,7 +221,7 @@ def marker_sort(a, b):
 
 def leftmost_sort(a, b):
     c = cmp(a.start, b.start)
-    return c if c else cmp(b.end-b.start, a.end-a.start)    
+    return c if c else cmp(b.end-b.start, a.end-a.start)
 
 
 def longest_sort(a, b):
@@ -505,16 +517,16 @@ def _standoff_to_html(text, standoffs, legend, tooltips, links):
         markers.append(Marker(s, s.start, False))
         markers.append(Marker(s, s.end, True))
     markers.sort(key=cmp_to_key(marker_sort))    # TODO avoid cmp_to_key
-    
+
     # process markers to generate additional start and end markers for
     # instances where naively generated spans would cross.
     i, o, out = 0, 0, []
     open_span = set()
-    while i < len(markers):        
+    while i < len(markers):
         if o != markers[i].offset:
             out.append(escape(text[o:markers[i].offset]))
         o = markers[i].offset
-        
+
         # collect markers opening or closing at this position and
         # determine max opening/closing marker height
         to_open, to_close = [], []
@@ -563,7 +575,7 @@ def _standoff_to_html(text, standoffs, legend, tooltips, links):
         for m in to_open:
             out.append(m)
             open_span.add(m.span)
-                
+
         i = last+1
     out.append(escape(text[o:]))
 
@@ -609,9 +621,9 @@ def darker_color(c, amount=0.3):
 def random_colors(n, seed=None):
     import random
     import colorsys
-    
+
     random.seed(seed)
-    
+
     # based on http://stackoverflow.com/a/470747
     colors = []
     for i in range(n):
@@ -663,10 +675,11 @@ ordered_type_color_map = OrderedDict([
     ('EVENT', '#ffb300'),
     ('PRO', '#ff99ff'),
     ('PRODUCT', '#ff9988'),
+    ('LAW', '#ff7777'),
     ('WORK_OF_ART', '#ff8899'),
     ('DATE', '#ffff44'),
     ('TIME', '#ffff66'),
-    ('MONEY', '#44aa44'),
+    ('MONEY', '#ddeedd'),
     ('PERCENT', '#ddddee'),
     ('QUANTITY', '#eeddee'),
     ('Organism_subdivision', '#ddaaaa'),
@@ -858,7 +871,7 @@ def _parse_body(annotation):
     else:
         return [(_to_standoff_type(body), _to_standoff_type(body))]
 
-        
+
 def oa_to_standoff(annotations, target_key='target'):
     """Convert OA annotations to Standoff objects."""
     standoffs = []

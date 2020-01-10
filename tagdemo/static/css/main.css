@@ -64,3 +64,15 @@ ul.collection-listing {
 ul.document-listing {
     list-style: none;
 }
+
+div.form-wrapper {
+    width: 800px;
+}
+
+#input-text {
+    width: 800px;
+}
+
+#submit_button {
+    float: right;
+}
